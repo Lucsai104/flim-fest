@@ -1,11 +1,11 @@
- <!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signature Day 2026 | Film Fest</title>
     <!-- Inter Font for that premium look -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-deep: #0f172a;
@@ -16,6 +16,7 @@
             --accent-purple: #a855f7;
             --success-green: #4ade80;
             --error-red: #ef4444;
+            --college-red: #ff3131;
         }
 
         * {
@@ -302,40 +303,88 @@
             animation: spin 1s linear infinite;
         }
 
-        /* Ticket Result */
+        /* Ticket Result - Futuristic Design */
         #ticket-result {
             display: none;
             text-align: center;
             animation: fadeIn 0.5s ease;
+            width: 100%;
         }
         .ticket-box {
-            background: white;
-            color: #0f172a;
+            background: #0f172a;
+            color: #f8fafc;
             border-radius: 20px;
             padding: 30px;
             position: relative;
             margin-top: 20px;
+            border: 2px solid var(--accent-blue);
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            overflow: hidden;
         }
-        .ticket-box::before, .ticket-box::after {
+        .ticket-box::before {
             content: '';
             position: absolute;
-            width: 30px;
-            height: 30px;
-            background: var(--bg-deep);
-            border-radius: 50%;
-            top: 50%;
-            transform: translateY(-50%);
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
+            pointer-events: none;
         }
-        .ticket-box::before { left: -15px; }
-        .ticket-box::after { right: -15px; }
+        
+        .ticket-box .college-name {
+            font-size: 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--college-red);
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 49, 49, 0.3);
+        }
+
+        .ticket-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 15px 0;
+            position: relative;
+        }
+        .ticket-divider::after {
+            content: 'SCAN TO VERIFY';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #151e31;
+            padding: 0 10px;
+            font-size: 8px;
+            color: var(--accent-blue);
+            letter-spacing: 1px;
+        }
         
         .id-badge {
-            font-size: 32px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 36px;
             font-weight: 900;
-            letter-spacing: 2px;
-            color: #0369a1;
-            margin: 15px 0;
+            letter-spacing: 4px;
+            color: var(--accent-blue);
+            margin: 20px 0;
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
         }
+
+        .ticket-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            text-align: left;
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .info-label { font-size: 9px; opacity: 0.5; text-transform: uppercase; margin-bottom: 2px;}
+        .info-value { font-size: 13px; font-weight: 700; color: #fff;}
 
         .hidden { display: none; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -391,16 +440,28 @@
                 <input type="text" id="user-name" placeholder="Enter your name">
             </div>
 
-            <div class="input-group">
-                <label>Identify As</label>
-                <select id="user-role" onchange="updatePrice()">
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
-                </select>
+            <div class="stats-row" style="margin-bottom: 0;">
+                <div class="input-group" style="flex: 2;">
+                    <label>Identify As</label>
+                    <select id="user-role" onchange="updatePrice()">
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                    </select>
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>Tickets</label>
+                    <select id="ticket-count" onchange="updatePrice()">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
             </div>
 
             <div class="price-display">
-                <div style="font-size: 12px; opacity: 0.6; margin-bottom: 4px;">TICKET PRICE</div>
+                <div style="font-size: 12px; opacity: 0.6; margin-bottom: 4px;">TOTAL AMOUNT</div>
                 <div class="price-val" id="price-val">₹10</div>
             </div>
 
@@ -466,29 +527,55 @@
 
         <!-- TICKET RESULT VIEW -->
         <div id="ticket-result">
-            <div style="font-size: 40px; margin-bottom: 10px;">🎉</div>
-            <h2 style="margin:0">Success!</h2>
-            <p style="opacity: 0.7; font-size: 14px;">Your seat is reserved.</p>
+            <div style="font-size: 40px; margin-bottom: 10px;">✨</div>
+            <h2 style="margin:0">Ticket Confirmed</h2>
+            <p style="opacity: 0.7; font-size: 14px;">Digital entry pass secured.</p>
             
             <div class="ticket-box">
-                <div style="font-size: 12px; opacity: 0.5; font-weight: 700;">OFFICIAL ENTRY PASS</div>
+                <div class="college-name">Gowthami Degree College</div>
+                <div style="font-size: 9px; opacity: 0.4; letter-spacing: 4px; font-weight: 700;">FILM FESTIVAL 2026</div>
+                
+                <div class="ticket-divider"></div>
+                
                 <div class="id-badge" id="final-ticket-id">FF-0000</div>
-                <div style="font-weight: 700; margin-bottom: 5px;" id="final-name">User Name</div>
-                <div style="font-size: 12px; opacity: 0.7;" id="final-role-label">Verified Student Entry • ₹10</div>
-                <hr style="border: none; border-top: 1px dashed #ccc; margin: 20px 0;">
-                <div style="font-size: 10px; opacity: 0.5;">SIGNATURE DAY FILM FEST • 2026</div>
+                
+                <div class="ticket-info">
+                    <div>
+                        <div class="info-label">Guest Name</div>
+                        <div class="info-value" id="final-name">User Name</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Designation</div>
+                        <div class="info-value" id="final-role">Verified Student</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Quantity</div>
+                        <div class="info-value" id="final-qty">1 Ticket</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Payment Status</div>
+                        <div class="info-value" style="color: var(--success-green)">COMPLETED</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; font-size: 8px; opacity: 0.3; text-transform: uppercase;">
+                    ID: SIG-2026-X77A-P99 <br>
+                    AUTOGENERATED BY SYSTEM CORE
+                </div>
             </div>
-            <p style="font-size: 12px; opacity: 0.5; margin-top: 20px;">Please take a screenshot of this ticket for the entry gate.</p>
+            
+            <p style="font-size: 12px; opacity: 0.5; margin-top: 20px;">Please take a screenshot of this futuristic pass for entry.</p>
             <button class="primary-btn" style="background: transparent; border: 1px solid var(--glass-border); color: white; margin-top: 10px;" onclick="location.reload()">Back to Home</button>
         </div>
     </div>
 
     <script>
         // --- YOUR DATA ---
-        const myUPI = "yourname@upi"; // Change this to your actual UPI ID
-        const myName = "SAIRAJ"; // Change this to your Name for UPI display
-        const studentPrice = 10;
-        const teacherPrice = 20;
+        const myUPI = "yourname@upi"; 
+        const myName = "SAIRAJ"; 
+        const collegeName = "Gowthami Degree College";
+        const studentPrice = 25;
+        const teacherPrice = 50;
 
         // Trial Data
         const movies = [
@@ -501,18 +588,14 @@
         let hasVoted = false;
         let timerInterval;
 
-        // Initialize Movies
         function renderMovies() {
             const list = document.getElementById('movies-list');
             list.innerHTML = '';
-            
             movies.forEach(movie => {
                 const percentage = totalVotesCount === 0 ? 0 : (movie.votes / totalVotesCount) * 100;
-                
                 const card = document.createElement('div');
                 card.className = `movie-card ${hasVoted ? 'voted-state' : ''}`;
                 card.onclick = () => castVote(movie.id);
-                
                 card.innerHTML = `
                     <p class="movie-title">${movie.title}</p>
                     <p class="movie-info">${movie.genre}</p>
@@ -529,17 +612,14 @@
 
         function castVote(id) {
             if (hasVoted) return alert("You have already voted!");
-            
             const movie = movies.find(m => m.id === id);
             movie.votes++;
             totalVotesCount++;
             hasVoted = true;
-            
             document.getElementById('total-votes').innerText = totalVotesCount;
             renderMovies();
-            
             setTimeout(() => {
-                alert("Vote Cast! Trial: Switching to Booking phase...");
+                alert("Vote Cast! Switching to Booking phase...");
                 switchPhase(2);
             }, 800);
         }
@@ -554,7 +634,6 @@
         function switchPhase(phase) {
             const btn1 = document.getElementById('btn-phase1');
             const btn2 = document.getElementById('btn-phase2');
-            
             const views = ['voting-view', 'booking-view', 'payment-view', 'ticket-result', 'verifying-screen'];
             views.forEach(v => document.getElementById(v).style.display = 'none');
 
@@ -567,7 +646,6 @@
                 btn1.classList.remove('active');
                 btn2.classList.add('active');
                 document.getElementById('booking-view').style.display = 'block';
-                
                 const winner = [...movies].sort((a, b) => b.votes - a.votes)[0];
                 document.getElementById('winner-name').innerText = winner.title;
             }
@@ -575,25 +653,21 @@
 
         function updatePrice() {
             const role = document.getElementById('user-role').value;
-            const price = role === 'student' ? studentPrice : teacherPrice;
-            document.getElementById('price-val').innerText = '₹' + price;
-            document.getElementById('pay-amount-label').innerText = '₹' + price;
-            
-            // 1. Update QR Code Image
+            const count = parseInt(document.getElementById('ticket-count').value);
+            const basePrice = role === 'student' ? studentPrice : teacherPrice;
+            const totalPrice = basePrice * count;
+            document.getElementById('price-val').innerText = '₹' + totalPrice;
+            document.getElementById('pay-amount-label').innerText = '₹' + totalPrice;
             const qrImg = document.getElementById('qr-display');
-            const upiUrl = `upi://pay?pa=${myUPI}&pn=${encodeURIComponent(myName)}&am=${price}&cu=INR`;
+            const upiUrl = `upi://pay?pa=${myUPI}&pn=${encodeURIComponent(myName)}&am=${totalPrice}&cu=INR`;
             qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUrl)}`;
-            
-            // 2. Update Direct App Link
             document.getElementById('upi-deep-link').href = upiUrl;
-            
             document.getElementById('upi-label').innerText = myUPI;
         }
 
         function goToPayment() {
             const name = document.getElementById('user-name').value;
-            if (!name) return alert("Please enter your name.");
-            
+            if (!name) return alert("Please enter your Name.");
             document.getElementById('booking-view').style.display = 'none';
             document.getElementById('payment-view').style.display = 'block';
             startTimer();
@@ -604,7 +678,6 @@
             let timeLeft = 300;
             const display = document.getElementById('timer');
             clearInterval(timerInterval);
-            
             timerInterval = setInterval(() => {
                 let m = Math.floor(timeLeft / 60);
                 let s = timeLeft % 60;
@@ -620,11 +693,9 @@
         function startVerification() {
             const txn = document.getElementById('txn-id').value;
             if(!txn) return alert("Enter Transaction Ref No.");
-
             document.getElementById('payment-view').style.display = 'none';
             document.getElementById('verifying-screen').style.display = 'block';
             clearInterval(timerInterval);
-
             setTimeout(() => {
                 processBooking();
             }, 3000);
@@ -633,7 +704,7 @@
         function processBooking() {
             const name = document.getElementById('user-name').value;
             const role = document.getElementById('user-role').value;
-            const price = role === 'student' ? studentPrice : teacherPrice;
+            const count = document.getElementById('ticket-count').value;
             const ticketID = "FF-" + Math.floor(1000 + Math.random() * 9000);
 
             document.getElementById('verifying-screen').style.display = 'none';
@@ -641,7 +712,8 @@
 
             document.getElementById('final-name').innerText = name;
             document.getElementById('final-ticket-id').innerText = ticketID;
-            document.getElementById('final-role-label').innerText = `Verified ${role.charAt(0).toUpperCase() + role.slice(1)} Entry • ₹${price}`;
+            document.getElementById('final-role').innerText = `Verified ${role.charAt(0).toUpperCase() + role.slice(1)}`;
+            document.getElementById('final-qty').innerText = `${count} Ticket(s)`;
         }
 
         renderMovies();

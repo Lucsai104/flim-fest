@@ -4,8 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gowthami Degree College | Film Fest</title>
-    <!-- Inter Font for that premium look -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <!-- Inter Font and Libraries -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Global styles and UI logic are handled in the standard script block below
+    </script>
     <style>
         :root {
             --bg-deep: #0f172a;
@@ -19,413 +28,97 @@
             --college-red: #ff3131;
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-gradient); background-attachment: fixed; color: #f8fafc; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
 
-        body {
-            background: var(--bg-gradient);
-            background-attachment: fixed;
-            color: #f8fafc;
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
+        /* Admin Start Button */
+        .admin-controls { background: rgba(255, 255, 255, 0.05); padding: 10px 20px; border-radius: 50px; margin-bottom: 20px; border: 1px solid var(--glass-border); display: none; }
+        .start-btn { background: var(--accent-purple); color: white; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
 
-        /* Admin Toggle for Trial Purpose */
-        .admin-panel {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px 15px;
-            border-radius: 50px;
-            margin-bottom: 20px;
-            font-size: 12px;
-            display: flex;
-            gap: 10px;
-            border: 1px solid var(--glass-border);
-        }
-        .admin-btn {
-            padding: 5px 12px;
-            border-radius: 20px;
-            border: none;
-            cursor: pointer;
-            background: transparent;
-            color: white;
-            opacity: 0.6;
-        }
-        .admin-btn.active {
-            background: var(--accent-blue);
-            opacity: 1;
-            font-weight: bold;
-        }
+        .main-container { width: 100%; max-width: 400px; }
+        .header-label { font-size: 14px; font-weight: 600; opacity: 0.6; letter-spacing: 1px; margin-bottom: 10px; }
+        h1 { font-size: 26px; font-weight: 800; margin: 0 0 25px 0; line-height: 1.2; }
 
-        .header-label {
-            font-size: 14px;
-            font-weight: 600;
-            opacity: 0.6;
-            letter-spacing: 1px;
-            margin-bottom: 30px;
-        }
+        .stats-row { display: flex; gap: 12px; margin-bottom: 25px; }
+        .stat-box { flex: 1; background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; text-align: center; backdrop-filter: blur(10px); }
+        .stat-val { display: block; font-size: 22px; font-weight: 800; color: var(--accent-blue); }
+        .stat-label { font-size: 11px; text-transform: uppercase; opacity: 0.5; font-weight: 700; margin-top: 4px; }
 
-        .main-container {
-            width: 100%;
-            max-width: 400px;
-        }
+        .movie-card { background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 16px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
+        .movie-card:active { transform: scale(0.98); }
+        .movie-card.voted { border-color: var(--accent-blue); box-shadow: 0 0 20px rgba(56, 189, 248, 0.2); pointer-events: none; }
+        .movie-title { font-size: 18px; font-weight: 700; margin: 0 0 4px 0; }
+        .movie-info { font-size: 13px; opacity: 0.5; margin-bottom: 12px; }
+        .vote-row { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--accent-blue); }
+        .progress-container { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin-top: 12px; overflow: hidden; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); width: 0%; transition: width 0.8s ease; }
 
-        h1 {
-            font-size: 26px;
-            font-weight: 800;
-            margin: 0 0 25px 0;
-            line-height: 1.2;
-        }
-
-        /* Stats Row */
-        .stats-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-        .stat-box {
-            flex: 1;
-            background: var(--glass-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 16px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-        .stat-val {
-            display: block;
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--accent-blue);
-        }
-        .stat-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            opacity: 0.5;
-            font-weight: 700;
-            margin-top: 4px;
-        }
-
-        /* Movie Cards */
-        .movie-card {
-            background: var(--glass-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .movie-card:active {
-            transform: scale(0.98);
-            background: rgba(255, 255, 255, 0.08);
-        }
-        .movie-card.voted {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
-        }
-        .movie-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin: 0 0 4px 0;
-        }
-        .movie-info {
-            font-size: 13px;
-            opacity: 0.5;
-            margin-bottom: 12px;
-        }
-        .vote-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--accent-blue);
-        }
-        .progress-container {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            margin-top: 12px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
-            width: 0%;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Forms and Containers */
-        .glass-view {
-            background: var(--glass-card);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 24px;
-            backdrop-filter: blur(20px);
-            display: none;
-            animation: fadeIn 0.4s ease;
-        }
-        
-        .booking-card { border-color: var(--accent-blue); }
-        .payment-card { border-color: var(--accent-purple); }
-
+        .glass-view { background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px; backdrop-filter: blur(20px); display: none; animation: fadeIn 0.4s ease; }
         .input-group { margin-bottom: 16px; }
         label { display: block; font-size: 12px; opacity: 0.6; margin-bottom: 6px; margin-left: 4px;}
-        input, select {
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 14px;
-            color: white;
-            font-size: 15px;
-            outline: none;
-        }
-        input:focus { border-color: var(--accent-blue); }
+        input, select { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; color: white; font-size: 15px; outline: none; }
         
-        .price-display {
-            background: rgba(56, 189, 248, 0.1);
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            margin: 20px 0;
-            border: 1px dashed var(--accent-blue);
-        }
+        .price-display { background: rgba(56, 189, 248, 0.1); padding: 15px; border-radius: 12px; text-align: center; margin: 20px 0; border: 1px dashed var(--accent-blue); }
         .price-val { font-size: 24px; font-weight: 800; color: var(--accent-blue); }
 
-        .primary-btn {
-            width: 100%;
-            background: var(--accent-blue);
-            color: #0f172a;
-            border: none;
-            padding: 16px;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .primary-btn:active { transform: scale(0.96); }
-
-        .upi-btn {
-            background: #fff;
-            color: #1a1a2e;
-            margin-bottom: 15px;
-            border: 2px solid #eee;
-        }
-
-        /* Payment Specific Updates */
-        .payment-toggle {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .toggle-btn {
-            flex: 1;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid var(--glass-border);
-            background: rgba(255,255,255,0.05);
-            color: white;
-            font-size: 12px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .toggle-btn.active {
-            background: var(--accent-purple);
-            border-color: var(--accent-purple);
-        }
-
-        .cash-instruction {
-            background: rgba(0,0,0,0.2);
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 13px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            border: 1px solid var(--glass-border);
-            text-align: center;
-        }
-        .cash-instruction b { color: var(--accent-blue); }
-
-        .payment-timer {
-            font-size: 14px;
-            color: var(--error-red);
-            font-weight: 700;
-            margin-top: 15px;
-            display: block;
-        }
-
-        /* Verifying Screen */
-        #verifying-screen {
-            text-align: center;
-            display: none;
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255,255,255,0.1);
-            border-top: 4px solid var(--accent-blue);
-            border-radius: 50%;
-            margin: 20px auto;
-            animation: spin 1s linear infinite;
-        }
-
-        /* Ticket Result - Futuristic Design */
-        #ticket-result {
-            display: none;
-            text-align: center;
-            animation: fadeIn 0.5s ease;
-            width: 100%;
-        }
-        .ticket-box {
-            background: #0f172a;
-            color: #f8fafc;
-            border-radius: 20px;
-            padding: 30px;
-            position: relative;
-            margin-top: 20px;
-            border: 2px solid var(--accent-blue);
-            box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            overflow: hidden;
-        }
-        .ticket-box::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
-            pointer-events: none;
-        }
+        .primary-btn { width: 100%; background: var(--accent-blue); color: #0f172a; border: none; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.2s; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        .ticket-box .college-name {
-            font-size: 14px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--college-red);
-            margin-bottom: 10px;
-            text-shadow: 0 0 10px rgba(255, 49, 49, 0.3);
-        }
+        .payment-toggle { display: flex; gap: 10px; margin-bottom: 20px; }
+        .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: white; font-size: 12px; cursor: pointer; font-weight: 600; }
+        .toggle-btn.active { background: var(--accent-purple); border-color: var(--accent-purple); }
 
-        .ticket-divider {
-            border: none;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            margin: 15px 0;
-            position: relative;
-        }
-        .ticket-divider::after {
-            content: 'SCAN TO VERIFY';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #151e31;
-            padding: 0 10px;
-            font-size: 8px;
-            color: var(--accent-blue);
-            letter-spacing: 1px;
-        }
-        
-        .id-badge {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 36px;
-            font-weight: 900;
-            letter-spacing: 4px;
-            color: var(--accent-blue);
-            margin: 20px 0;
-            text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
-        }
+        #ticket-result { display: none; text-align: center; width: 100%; }
+        #ticket-capture-area { padding: 20px; background: transparent; width: 100%; max-width: 400px; margin: 0 auto; }
+        .sponsored-text { font-size: 14px; color: #94a3b8; margin-bottom: 15px; text-align: left; }
+        .ticket-outer-border { border: 2px solid var(--accent-blue); border-radius: 24px; padding: 2px; box-shadow: 0 0 30px rgba(56, 189, 248, 0.2); }
+        .ticket-box { background: #111827; color: #f8fafc; border-radius: 20px; padding: 30px 20px; position: relative; text-align: center; }
+        .college-name { font-size: 18px; font-weight: 900; color: var(--college-red); text-transform: uppercase; margin-bottom: 8px; }
+        .id-badge { font-size: 48px; font-weight: 800; color: var(--accent-blue); margin: 25px 0; text-shadow: 0 0 15px rgba(56, 189, 248, 0.6); }
+        .ticket-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: rgba(255, 255, 255, 0.04); padding: 20px; border-radius: 20px; margin-top: 25px; text-align: left; }
+        .grid-item label { font-size: 10px; opacity: 0.5; text-transform: uppercase; }
+        .grid-value { font-size: 14px; font-weight: 700; }
 
-        .ticket-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            text-align: left;
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .info-label { font-size: 9px; opacity: 0.5; text-transform: uppercase; margin-bottom: 2px;}
-        .info-value { font-size: 13px; font-weight: 700; color: #fff;}
-
-        .hidden { display: none; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none; }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--accent-blue); border-radius: 50%; margin: 20px auto; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Mobile specific adjustments */
-        @media (max-width: 480px) {
-            h1 { font-size: 22px; }
-            .stat-val { font-size: 20px; }
-        }
     </style>
 </head>
 <body>
 
-    <!-- Trial Admin Switcher (Only for you to test) -->
-    <div class="admin-panel">
-        <button class="admin-btn active" id="btn-phase1" onclick="switchPhase(1)">Phase 1: Voting</button>
-        <button class="admin-btn" id="btn-phase2" onclick="switchPhase(2)">Phase 2: Booking</button>
+    <div class="admin-controls" id="admin-panel">
+        <button class="start-btn" onclick="triggerStart()">Start Film Fest</button>
+        <span style="font-size: 10px; opacity: 0.5; margin-left: 10px;">(Admin Only)</span>
     </div>
 
     <div class="main-container">
-        <!-- Top College Name Display -->
         <div style="text-align: center; margin-bottom: 25px;">
             <div style="color: var(--college-red); font-weight: 900; letter-spacing: 2px; font-size: 18px; text-transform: uppercase;">Gowthami Degree College</div>
             <div class="header-label" style="margin-bottom: 0; margin-top: 5px;">SIGNATURE DAY 2026</div>
         </div>
         
-        <!-- VOTING VIEW -->
-        <div id="voting-view">
-            <h1>Vote for Your<br>Favorite Movie</h1>
-            
-            <div class="stats-row">
-                <div class="stat-box">
-                    <span class="stat-val" id="total-votes">0</span>
-                    <span class="stat-label">Total Votes</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-val" style="color: var(--success-green);">Live</span>
-                    <span class="stat-label">Status</span>
-                </div>
-            </div>
+        <!-- WAITING VIEW -->
+        <div id="waiting-view" style="text-align: center; padding: 40px 0;">
+            <div style="font-size: 50px; margin-bottom: 20px;">🎬</div>
+            <h1>Stay Tuned!</h1>
+            <p style="opacity: 0.7;">The voting phase will start soon. Refresh the page once the coordinators announce it!</p>
+        </div>
 
-            <div id="movies-list">
-                <!-- Movie cards will be generated by JS -->
+        <!-- VOTING VIEW -->
+        <div id="voting-view" class="hidden">
+            <h1>Vote for Your<br>Favorite Movie</h1>
+            <div class="stats-row">
+                <div class="stat-box"><span class="stat-val" id="total-votes">0</span><span class="stat-label">Total Votes</span></div>
+                <div class="stat-box"><span class="stat-val" style="color: var(--accent-purple);" id="vote-timer">24:00:00</span><span class="stat-label">Time Left</span></div>
             </div>
+            <div id="movies-list"></div>
         </div>
 
         <!-- BOOKING VIEW -->
-        <div id="booking-view" class="glass-view booking-card">
+        <div id="booking-view" class="glass-view">
             <h2 style="margin: 0 0 10px 0;">Grab Your Ticket</h2>
-            <p style="font-size: 14px; opacity: 0.7; margin-bottom: 25px;">
-                Winner: <span id="winner-name" style="color: var(--accent-blue); font-weight: bold;">Movie Title</span>
-            </p>
-
-            <div class="input-group">
-                <label>Full Name</label>
-                <input type="text" id="user-name" placeholder="Enter your name">
-            </div>
+            <p style="font-size: 14px; opacity: 0.7; margin-bottom: 20px;">Movie Winner: <span id="winner-name" style="color: var(--accent-blue); font-weight: bold;">...</span></p>
 
             <div class="stats-row" style="margin-bottom: 0;">
                 <div class="input-group" style="flex: 2;">
@@ -447,6 +140,8 @@
                 </div>
             </div>
 
+            <div id="name-inputs-container"></div>
+
             <div class="price-display">
                 <div style="font-size: 12px; opacity: 0.6; margin-bottom: 4px;">TOTAL AMOUNT</div>
                 <div class="price-val" id="price-val">₹15</div>
@@ -456,255 +151,274 @@
         </div>
 
         <!-- PAYMENT VIEW -->
-        <div id="payment-view" class="glass-view payment-card">
+        <div id="payment-view" class="glass-view">
             <h2 style="margin: 0 0 10px 0;">Payment Details</h2>
-            <p style="font-size: 14px; opacity: 0.7; margin-bottom: 20px;">
-                Pay <b id="pay-amount-label" style="color: var(--accent-blue);">₹10</b> to secure your seat
-            </p>
+            <p style="font-size: 14px; opacity: 0.7; margin-bottom: 20px;">Total: <b id="pay-amount-label" style="color: var(--accent-blue);">₹15</b></p>
 
             <div class="payment-toggle">
-                <button class="toggle-btn active" id="tab-upi" onclick="togglePayMethod('upi')">UPI Payment</button>
-                <button class="toggle-btn" id="tab-cash" onclick="togglePayMethod('cash')">Cash Payment</button>
+                <button class="toggle-btn active" id="tab-upi" onclick="togglePayMethod('upi')">UPI</button>
+                <button class="toggle-btn" id="tab-cash" onclick="togglePayMethod('cash')">Cash</button>
             </div>
 
-            <!-- UPI Method -->
             <div id="method-upi">
-                <a id="upi-deep-link" href="#" class="primary-btn upi-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                    Pay via PhonePe / GPay
-                </a>
-                <p style="font-size: 12px; text-align: center; opacity: 0.8; margin-bottom: 20px;">
-                    UPI ID: <b id="upi-label">yourname@upi</b>
-                </p>
-                <div class="input-group">
-                    <label>Transaction Ref No.</label>
-                    <input type="text" id="txn-id" placeholder="Enter last 6 digits of Ref ID">
-                </div>
+                <a id="upi-deep-link" href="#" class="primary-btn" style="background: #fff; color: #000; margin-bottom: 15px;">Open UPI App</a>
+                <p style="font-size: 11px; text-align: center; opacity: 0.6; margin-bottom: 15px;">UPI ID: <b>6302427339@slc</b></p>
+                <div class="input-group"><label>Transaction ID</label><input type="text" id="txn-id" placeholder="Enter Ref Number"></div>
             </div>
 
-            <!-- Cash Method -->
             <div id="method-cash" style="display: none;">
-                <div class="cash-instruction">
-                    Please pay <b>₹<span id="cash-amt">10</span></b> to the event coordinator and ask for the <b>Confirmation Code</b>.
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; font-size: 13px; text-align: center; margin-bottom: 20px; border: 1px solid var(--glass-border);">
+                    Pay cash to coordinator for the <b>Confirmation Code</b>.
                 </div>
-                <div class="input-group">
-                    <label>Enter Confirmation Code</label>
-                    <input type="password" id="cash-code" placeholder="Enter 6-digit code">
-                </div>
+                <div class="input-group"><label>Enter Code</label><input type="password" id="cash-code" placeholder="6-digit code"></div>
             </div>
 
-            <div class="payment-timer" id="timer" style="text-align: center;">05:00</div>
-
-            <button class="primary-btn" style="background: var(--success-green); margin-top: 20px;" onclick="startVerification()">CONFIRM & GET TICKET</button>
+            <button class="primary-btn" style="background: var(--success-green);" onclick="validatePayment()">VERIFY & GET TICKET</button>
         </div>
 
-        <!-- VERIFYING SCREEN -->
-        <div id="verifying-screen" class="glass-view" style="display: none; border-color: var(--accent-blue);">
-            <div class="spinner"></div>
-            <h3>Verifying Payment...</h3>
-            <p style="opacity: 0.7; font-size: 14px;">Checking with the system. Please wait.</p>
-        </div>
+        <!-- PROCESSING VIEW -->
+        <div id="verifying-screen" class="glass-view"><div class="spinner"></div><h3>Verifying Transaction...</h3></div>
 
         <!-- TICKET RESULT VIEW -->
         <div id="ticket-result">
-            <div style="font-size: 40px; margin-bottom: 10px;">✨</div>
-            <h2 style="margin:0">Ticket Confirmed</h2>
-            <p style="opacity: 0.7; font-size: 14px;">Sponsored by<u> HOTDROP</u> - The private social media</p>
+            <h2 style="margin:0">Ticket Secured!</h2>
+            <p style="opacity: 0.7; font-size: 12px; margin-bottom: 15px;">Sponsored by <u>HOTDROP</u> - The private social media</p>
             
-            <div class="ticket-box">
-                <div class="college-name">Gowthami Degree College</div>
-                <div style="font-size: 9px; opacity: 0.4; letter-spacing: 4px; font-weight: 700;">FILM FESTIVAL 2026</div>
-                
-                <div class="ticket-divider"></div>
-                
-                <div class="id-badge" id="final-ticket-id">FF-0000</div>
-                
-                <div class="ticket-info">
-                    <div>
-                        <div class="info-label">Guest Name</div>
-                        <div class="info-value" id="final-name">User Name</div>
+            <div id="ticket-capture-area">
+                <div class="ticket-outer-border">
+                    <div class="ticket-box" id="ticket-capture">
+                        <div class="college-name">Gowthami Degree College</div>
+                        <div style="font-size: 10px; letter-spacing: 4px; opacity: 0.5;">FILM FESTIVAL 2026</div>
+                        <div class="id-badge" id="final-ticket-id">FF-0000</div>
+                        <div class="ticket-grid">
+                            <div class="grid-item"><label>Names</label><div class="grid-value" id="final-names">...</div></div>
+                            <div class="grid-item"><label>Status</label><div class="grid-value" style="color: var(--success-green)">VALIDATED</div></div>
+                            <div class="grid-item"><label>Designation</label><div class="grid-value" id="final-designation">Student</div></div>
+                            <div class="grid-item"><label>Quantity</label><div class="grid-value" id="final-qty">1</div></div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="info-label">Designation</div>
-                        <div class="info-value" id="final-role">Verified Student</div>
-                    </div>
-                    <div>
-                        <div class="info-label">Quantity</div>
-                        <div class="info-value" id="final-qty">1 Ticket</div>
-                    </div>
-                    <div>
-                        <div class="info-label">Status</div>
-                        <div class="info-value" style="color: var(--success-green)">VALIDATED</div>
-                    </div>
-                </div>
-
-                <div style="margin-top: 20px; font-size: 8px; opacity: 0.3; text-transform: uppercase;">
-                    ID: SIG-2026-X77A-P99 <br>
-                    AUTOGENERATED BY SYSTEM CORE
                 </div>
             </div>
-            
-            <p style="font-size: 12px; opacity: 0.5; margin-top: 20px;">Please take a screenshot of this futuristic pass for entry.</p>
-            <button class="primary-btn" style="background: transparent; border: 1px solid var(--glass-border); color: white; margin-top: 10px;" onclick="location.reload()">Back to Home</button>
+
+            <button class="primary-btn" style="margin-top: 20px; background: var(--accent-purple);" onclick="downloadPass()">DOWNLOAD TICKET</button>
+            <button class="primary-btn" style="background: transparent; border: 1px solid var(--glass-border); color: white; margin-top: 10px;" onclick="location.reload()">HOME</button>
         </div>
     </div>
 
-    <script>
-        // --- CONFIGURATION ---
-        const myUPI = "6302427339@slc"; 
-        const myName = "SAIRAJ"; 
-        const studentPrice = 15;
-        const teacherPrice = 25;
-        const CASH_SECRET_CODE = "944016"; 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        let currentMethod = 'upi';
-        let totalVotesCount = 0;
-        let hasVoted = false;
-        let timerInterval;
 
-        const movies = [
+
+        // Firebase Config
+        // REPLACE THE OLD CONFIG WITH THIS ONE FROM YOUR SCREENSHOT
+const firebaseConfig = {
+  apiKey: "AIzaSyATcIHFWho0f9_hE5PnuaeJE8U3rPH0M78",
+  authDomain: "gdc-film-fest.firebaseapp.com",
+  projectId: "gdc-film-fest",
+  storageBucket: "gdc-film-fest.firebasestorage.app",
+  messagingSenderId: "145923761775",
+  appId: "1:145923761775:web:6ad25817862b739b2b0f9a"
+};
+
+        let user = null;
+        let eventState = { phase: 0, startTime: null };
+        let movies = [
             { id: 'knight', title: 'The Dark Knight', genre: 'Action, Crime, Drama', votes: 0 },
             { id: 'inception', title: 'Inception', genre: 'Sci-Fi, Thriller', votes: 0 },
             { id: 'inter', title: 'Interstellar', genre: 'Sci-Fi, Adventure', votes: 0 }
         ];
 
-        function renderMovies() {
+        // --- AUTH ---
+        signInAnonymously(auth).then(() => {
+            onAuthStateChanged(auth, (u) => {
+                user = u;
+                if(u) initApp();
+            });
+        });
+
+        function initApp() {
+            // Check if admin is logged in (Simple query param for this demo: ?admin=true)
+            if (new URLSearchParams(window.location.search).get('admin') === 'true') {
+                document.getElementById('admin-panel').style.display = 'block';
+            }
+
+            // Sync Event State
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'eventState'), (docSnap) => {
+                if (docSnap.exists()) {
+                    eventState = docSnap.data();
+                    renderPhase();
+                } else {
+                    // Create default state
+                    setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'eventState'), { phase: 0, startTime: null });
+                }
+            });
+
+            // Sync Movie Votes
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'movies'), (snapshot) => {
+                const updatedMovies = [];
+                let total = 0;
+                snapshot.forEach(d => {
+                    const data = d.data();
+                    updatedMovies.push({ id: d.id, ...data });
+                    total += (data.votes || 0);
+                });
+                if(updatedMovies.length > 0) {
+                    movies = updatedMovies;
+                    document.getElementById('total-votes').innerText = total;
+                    renderMovies(total);
+                } else {
+                    // Seed movies
+                    movies.forEach(m => setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'movies', m.id), m));
+                }
+            });
+        }
+
+        // --- PHASE LOGIC ---
+        function renderPhase() {
+            const views = ['waiting-view', 'voting-view', 'booking-view', 'payment-view', 'ticket-result'];
+            views.forEach(v => document.getElementById(v).classList.add('hidden'));
+
+            if (eventState.phase === 0) {
+                document.getElementById('waiting-view').classList.remove('hidden');
+            } else if (eventState.phase === 1) {
+                document.getElementById('voting-view').classList.remove('hidden');
+                startCountdown();
+            } else if (eventState.phase === 2) {
+                document.getElementById('booking-view').style.display = 'block';
+                const winner = [...movies].sort((a,b) => b.votes - a.votes)[0];
+                document.getElementById('winner-name').innerText = winner ? winner.title : "TBA";
+                updatePrice();
+            }
+        }
+
+        window.triggerStart = async () => {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'eventState'), {
+                phase: 1,
+                startTime: Date.now()
+            });
+        };
+
+        function startCountdown() {
+            if (!eventState.startTime) return;
+            const timerEl = document.getElementById('vote-timer');
+            const interval = setInterval(() => {
+                const now = Date.now();
+                const diff = (24 * 60 * 60 * 1000) - (now - eventState.startTime);
+                
+                if (diff <= 0) {
+                    clearInterval(interval);
+                    timerEl.innerText = "00:00:00";
+                    if (eventState.phase === 1) updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'eventState'), { phase: 2 });
+                } else {
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    timerEl.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                }
+            }, 1000);
+        }
+
+        // --- VOTING ---
+        function renderMovies(total) {
             const list = document.getElementById('movies-list');
             list.innerHTML = '';
-            movies.forEach(movie => {
-                const percentage = totalVotesCount === 0 ? 0 : (movie.votes / totalVotesCount) * 100;
+            movies.forEach(m => {
+                const perc = total === 0 ? 0 : (m.votes / total) * 100;
                 const card = document.createElement('div');
-                card.className = `movie-card ${hasVoted ? 'voted-state' : ''}`;
-                card.onclick = () => castVote(movie.id);
+                card.className = 'movie-card';
+                if(localStorage.getItem('voted')) card.classList.add('voted');
+                card.onclick = () => castVote(m.id);
                 card.innerHTML = `
-                    <p class="movie-title">${movie.title}</p>
-                    <p class="movie-info">${movie.genre}</p>
-                    <div class="vote-row">
-                        <span>👥 ${movie.votes} votes</span>
-                    </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: ${percentage}%"></div>
-                    </div>
+                    <p class="movie-title">${m.title}</p>
+                    <p class="movie-info">${m.genre}</p>
+                    <div class="vote-row"><span>👥 ${m.votes || 0} votes</span></div>
+                    <div class="progress-container"><div class="progress-bar" style="width: ${perc}%"></div></div>
                 `;
                 list.appendChild(card);
             });
         }
 
-        function castVote(id) {
-            if (hasVoted) return alert("You have already voted!");
-            const movie = movies.find(m => m.id === id);
-            movie.votes++;
-            totalVotesCount++;
-            hasVoted = true;
-            document.getElementById('total-votes').innerText = totalVotesCount;
-            renderMovies();
-            setTimeout(() => {
-                alert("Vote Cast! Switching to Booking phase...");
-                switchPhase(2);
-            }, 800);
+        async function castVote(id) {
+            if(localStorage.getItem('voted')) return;
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'movies', id), { votes: increment(1) });
+            localStorage.setItem('voted', 'true');
         }
 
-        function togglePayMethod(method) {
-            currentMethod = method;
-            document.getElementById('tab-upi').classList.toggle('active', method === 'upi');
-            document.getElementById('tab-cash').classList.toggle('active', method === 'cash');
-            document.getElementById('method-upi').style.display = method === 'upi' ? 'block' : 'none';
-            document.getElementById('method-cash').style.display = method === 'cash' ? 'block' : 'none';
-        }
-
-        function switchPhase(phase) {
-            const btn1 = document.getElementById('btn-phase1');
-            const btn2 = document.getElementById('btn-phase2');
-            const views = ['voting-view', 'booking-view', 'payment-view', 'ticket-result', 'verifying-screen'];
-            views.forEach(v => document.getElementById(v).style.display = 'none');
-
-            if (phase === 1) {
-                btn1.classList.add('active');
-                btn2.classList.remove('active');
-                document.getElementById('voting-view').style.display = 'block';
-                clearInterval(timerInterval);
-            } else {
-                btn1.classList.remove('active');
-                btn2.classList.add('active');
-                document.getElementById('booking-view').style.display = 'block';
-                const winner = [...movies].sort((a, b) => b.votes - a.votes)[0];
-                document.getElementById('winner-name').innerText = winner.title;
-            }
-        }
-
-        function updatePrice() {
+        // --- BOOKING ---
+        let currentMethod = 'upi';
+        window.updatePrice = () => {
             const role = document.getElementById('user-role').value;
             const count = parseInt(document.getElementById('ticket-count').value);
-            const basePrice = role === 'student' ? studentPrice : teacherPrice;
-            const totalPrice = basePrice * count;
+            const total = count * (role === 'student' ? 15 : 25);
             
-            document.getElementById('price-val').innerText = '₹' + totalPrice;
-            document.getElementById('pay-amount-label').innerText = '₹' + totalPrice;
-            document.getElementById('cash-amt').innerText = totalPrice;
-            
-            const upiUrl = `upi://pay?pa=${myUPI}&pn=${encodeURIComponent(myName)}&am=${totalPrice}&cu=INR`;
-            document.getElementById('upi-deep-link').href = upiUrl;
-            document.getElementById('upi-label').innerText = myUPI;
-        }
+            document.getElementById('price-val').innerText = `₹${total}`;
+            document.getElementById('pay-amount-label').innerText = `₹${total}`;
+            document.getElementById('cash-amt').innerText = total;
 
-        function goToPayment() {
-            const name = document.getElementById('user-name').value;
-            if (!name) return alert("Please enter your Name.");
+            const nameContainer = document.getElementById('name-inputs-container');
+            nameContainer.innerHTML = '<label>Ticket Names</label>';
+            for(let i=1; i<=count; i++) {
+                nameContainer.innerHTML += `<input type="text" class="g-name" placeholder="Name for ticket ${i}" style="margin-bottom:10px">`;
+            }
+
+            const upiUrl = `upi://pay?pa=6302427339@slc&pn=SAIRAJ&am=${total}&cu=INR`;
+            document.getElementById('upi-deep-link').href = upiUrl;
+        };
+
+        window.togglePayMethod = (m) => {
+            currentMethod = m;
+            document.getElementById('tab-upi').classList.toggle('active', m === 'upi');
+            document.getElementById('tab-cash').classList.toggle('active', m === 'cash');
+            document.getElementById('method-upi').style.display = m === 'upi' ? 'block' : 'none';
+            document.getElementById('method-cash').style.display = m === 'cash' ? 'block' : 'none';
+        };
+
+        window.goToPayment = () => {
+            const names = Array.from(document.querySelectorAll('.g-name')).map(i => i.value.trim());
+            if(names.some(n => !n)) return alert("Enter names for all tickets.");
             document.getElementById('booking-view').style.display = 'none';
             document.getElementById('payment-view').style.display = 'block';
-            startTimer();
-            updatePrice();
-        }
+        };
 
-        function startTimer() {
-            let timeLeft = 300;
-            const display = document.getElementById('timer');
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                let m = Math.floor(timeLeft / 60);
-                let s = timeLeft % 60;
-                display.innerText = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-                if (timeLeft-- <= 0) {
-                    clearInterval(timerInterval);
-                    alert("Timeout! Try again.");
-                    switchPhase(2);
-                }
-            }, 1000);
-        }
-
-        function startVerification() {
-            if (currentMethod === 'upi') {
-                const txn = document.getElementById('txn-id').value;
-                if(!txn) return alert("Please enter Transaction Ref No.");
-            } else {
-                const code = document.getElementById('cash-code').value;
-                if(code !== CASH_SECRET_CODE) return alert("Invalid Confirmation Code. Please contact coordinator.");
-            }
+        window.validatePayment = async () => {
+            if(currentMethod === 'upi' && !document.getElementById('txn-id').value) return alert("Enter Ref ID.");
+            if(currentMethod === 'cash' && document.getElementById('cash-code').value !== "944016") return alert("Wrong code.");
 
             document.getElementById('payment-view').style.display = 'none';
             document.getElementById('verifying-screen').style.display = 'block';
-            clearInterval(timerInterval);
-            setTimeout(() => {
-                processBooking();
-            }, 2500);
-        }
 
-        function processBooking() {
-            const name = document.getElementById('user-name').value;
-            const role = document.getElementById('user-role').value;
-            const count = document.getElementById('ticket-count').value;
+            const names = Array.from(document.querySelectorAll('.g-name')).map(i => i.value.trim());
             const ticketID = "FF-" + Math.floor(1000 + Math.random() * 9000);
+            
+            // Save Booking
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), {
+                names,
+                ticketID,
+                role: document.getElementById('user-role').value,
+                timestamp: serverTimestamp()
+            });
 
-            document.getElementById('verifying-screen').style.display = 'none';
-            document.getElementById('ticket-result').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('verifying-screen').style.display = 'none';
+                document.getElementById('ticket-result').style.display = 'block';
+                document.getElementById('final-ticket-id').innerText = ticketID;
+                document.getElementById('final-names').innerText = names.join(', ');
+                document.getElementById('final-designation').innerText = document.getElementById('user-role').value;
+                document.getElementById('final-qty').innerText = names.length;
+            }, 2000);
+        };
 
-            document.getElementById('final-name').innerText = name;
-            document.getElementById('final-ticket-id').innerText = ticketID;
-            document.getElementById('final-role').innerText = `Verified ${role.charAt(0).toUpperCase() + role.slice(1)}`;
-            document.getElementById('final-qty').innerText = `${count} Ticket(s)`;
-        }
-
-        renderMovies();
+        window.downloadPass = () => {
+            html2canvas(document.getElementById('ticket-capture-area'), { backgroundColor: "#0f172a", scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'GDC-FilmFest-Ticket.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        };
     </script>
 </body>
 </html>

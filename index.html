@@ -2,423 +2,560 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gowthami Degree College | Film Fest</title>
-    <!-- Inter Font and Libraries -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // Global styles and UI logic are handled in the standard script block below
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Gowthami Degree College - Film Fest 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root {
-            --bg-deep: #0f172a;
-            --bg-gradient: radial-gradient(circle at top right, #1e293b, #0f172a);
-            --glass-card: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --accent-blue: #38bdf8;
-            --accent-purple: #a855f7;
-            --success-green: #4ade80;
-            --error-red: #ef4444;
-            --college-red: #ff3131;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #060b1b;
+            color: white;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg-gradient); background-attachment: fixed; color: #f8fafc; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .glass {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-        /* Admin Start Button */
-        .admin-controls { background: rgba(255, 255, 255, 0.05); padding: 10px 20px; border-radius: 50px; margin-bottom: 20px; border: 1px solid var(--glass-border); display: none; }
-        .start-btn { background: var(--accent-purple); color: white; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        .glow-blue {
+            background: radial-gradient(circle, rgba(30, 58, 138, 0.35) 0%, rgba(6, 11, 27, 0) 70%);
+        }
 
-        .main-container { width: 100%; max-width: 400px; }
-        .header-label { font-size: 14px; font-weight: 600; opacity: 0.6; letter-spacing: 1px; margin-bottom: 10px; }
-        h1 { font-size: 26px; font-weight: 800; margin: 0 0 25px 0; line-height: 1.2; }
+        .glow-pink {
+            background: radial-gradient(circle, rgba(131, 24, 67, 0.15) 0%, rgba(6, 11, 27, 0) 70%);
+        }
 
-        .stats-row { display: flex; gap: 12px; margin-bottom: 25px; }
-        .stat-box { flex: 1; background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; text-align: center; backdrop-filter: blur(10px); }
-        .stat-val { display: block; font-size: 22px; font-weight: 800; color: var(--accent-blue); }
-        .stat-label { font-size: 11px; text-transform: uppercase; opacity: 0.5; font-weight: 700; margin-top: 4px; }
+        .hidden-view {
+            display: none;
+        }
 
-        .movie-card { background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 16px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
-        .movie-card:active { transform: scale(0.98); }
-        .movie-card.voted { border-color: var(--accent-blue); box-shadow: 0 0 20px rgba(56, 189, 248, 0.2); pointer-events: none; }
-        .movie-title { font-size: 18px; font-weight: 700; margin: 0 0 4px 0; }
-        .movie-info { font-size: 13px; opacity: 0.5; margin-bottom: 12px; }
-        .vote-row { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--accent-blue); }
-        .progress-container { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; margin-top: 12px; overflow: hidden; }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); width: 0%; transition: width 0.8s ease; }
+        html, body {
+            overscroll-behavior-y: contain;
+        }
 
-        .glass-view { background: var(--glass-card); border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px; backdrop-filter: blur(20px); display: none; animation: fadeIn 0.4s ease; }
-        .input-group { margin-bottom: 16px; }
-        label { display: block; font-size: 12px; opacity: 0.6; margin-bottom: 6px; margin-left: 4px;}
-        input, select { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; color: white; font-size: 15px; outline: none; }
-        
-        .price-display { background: rgba(56, 189, 248, 0.1); padding: 15px; border-radius: 12px; text-align: center; margin: 20px 0; border: 1px dashed var(--accent-blue); }
-        .price-val { font-size: 24px; font-weight: 800; color: var(--accent-blue); }
+        section {
+            animation: slideIn 0.4s ease-out;
+        }
 
-        .primary-btn { width: 100%; background: var(--accent-blue); color: #0f172a; border: none; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.2s; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        .payment-toggle { display: flex; gap: 10px; margin-bottom: 20px; }
-        .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: white; font-size: 12px; cursor: pointer; font-weight: 600; }
-        .toggle-btn.active { background: var(--accent-purple); border-color: var(--accent-purple); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        #ticket-result { display: none; text-align: center; width: 100%; }
-        #ticket-capture-area { padding: 20px; background: transparent; width: 100%; max-width: 400px; margin: 0 auto; }
-        .sponsored-text { font-size: 14px; color: #94a3b8; margin-bottom: 15px; text-align: left; }
-        .ticket-outer-border { border: 2px solid var(--accent-blue); border-radius: 24px; padding: 2px; box-shadow: 0 0 30px rgba(56, 189, 248, 0.2); }
-        .ticket-box { background: #111827; color: #f8fafc; border-radius: 20px; padding: 30px 20px; position: relative; text-align: center; }
-        .college-name { font-size: 18px; font-weight: 900; color: var(--college-red); text-transform: uppercase; margin-bottom: 8px; }
-        .id-badge { font-size: 48px; font-weight: 800; color: var(--accent-blue); margin: 25px 0; text-shadow: 0 0 15px rgba(56, 189, 248, 0.6); }
-        .ticket-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: rgba(255, 255, 255, 0.04); padding: 20px; border-radius: 20px; margin-top: 25px; text-align: left; }
-        .grid-item label { font-size: 10px; opacity: 0.5; text-transform: uppercase; }
-        .grid-value { font-size: 14px; font-weight: 700; }
+        ::-webkit-scrollbar {
+            width: 0px;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .hidden { display: none; }
-        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--accent-blue); border-radius: 50%; margin: 20px auto; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .ticket-cutout {
+            position: relative;
+        }
+        .ticket-cutout::before, .ticket-cutout::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            width: 20px;
+            height: 20px;
+            background: #060b1b;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        .ticket-cutout::before { left: -10px; }
+        .ticket-cutout::after { right: -10px; }
+
+        .sponsor-shimmer {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+            background-size: 200% auto;
+            animation: shimmer 3s linear infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes shimmer {
+            to { background-position: 200% center; }
+        }
     </style>
 </head>
-<body>
-
-    <div class="admin-controls" id="admin-panel">
-        <button class="start-btn" onclick="triggerStart()">Start Film Fest</button>
-        <span style="font-size: 10px; opacity: 0.5; margin-left: 10px;">(Admin Only)</span>
+<body class="min-h-screen relative">
+    <!-- Background Decor -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute top-[-10%] left-[-20%] w-[120%] h-[50%] glow-blue rounded-full"></div>
+        <div class="absolute bottom-[-5%] right-[-20%] w-[120%] h-[50%] glow-pink rounded-full"></div>
     </div>
 
-    <div class="main-container">
-        <div style="text-align: center; margin-bottom: 25px;">
-            <div style="color: var(--college-red); font-weight: 900; letter-spacing: 2px; font-size: 18px; text-transform: uppercase;">Gowthami Degree College</div>
-            <div class="header-label" style="margin-bottom: 0; margin-top: 5px;">SIGNATURE DAY 2026</div>
-        </div>
-        
-        <!-- WAITING VIEW -->
-        <div id="waiting-view" style="text-align: center; padding: 40px 0;">
-            <div style="font-size: 50px; margin-bottom: 20px;">🎬</div>
-            <h1>Stay Tuned!</h1>
-            <p style="opacity: 0.7;">The voting phase will start soon. Refresh the page once the coordinators announce it!</p>
-        </div>
-
-        <!-- VOTING VIEW -->
-        <div id="voting-view" class="hidden">
-            <h1>Vote for Your<br>Favorite Movie</h1>
-            <div class="stats-row">
-                <div class="stat-box"><span class="stat-val" id="total-votes">0</span><span class="stat-label">Total Votes</span></div>
-                <div class="stat-box"><span class="stat-val" style="color: var(--accent-purple);" id="vote-timer">24:00:00</span><span class="stat-label">Time Left</span></div>
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-30 glass border-t-0 border-x-0 rounded-none px-4 py-4 sm:px-6 flex flex-col gap-3">
+        <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i data-lucide="ticket" class="text-white w-5 h-5"></i>
+                </div>
+                <span class="text-lg font-black tracking-tight italic">FILM<span class="text-blue-500">FEST</span></span>
             </div>
-            <div id="movies-list"></div>
+            <div class="flex bg-white/5 rounded-full p-1 border border-white/10">
+                <button onclick="showView('voting-view')" id="nav-vote" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-blue-600 shadow-lg">Vote</button>
+                <button onclick="showView('booking-view')" id="nav-tickets" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all hover:bg-white/5">Book</button>
+            </div>
         </div>
+        <h1 class="text-center text-red-400 font-black text-lg uppercase tracking-[0.1em] border-t border-white/5 pt-3">
+            Gowthami Degree College
+        </h1>
+    </header>
+
+    <!-- Main Content -->
+    <main class="relative z-10 max-w-5xl mx-auto px-4 pt-6 pb-20">
+        
+        <!-- VOTING VIEW -->
+        <section id="voting-view" class="space-y-8">
+            <div class="text-center space-y-3">
+                <div class="flex flex-col items-center gap-1">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-500">Presents</p>
+                </div>
+                <h1 class="text-3xl font-black leading-tight">Cast Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Vote</span></h1>
+                
+                <div class="py-2 inline-block px-4 glass rounded-full border border-blue-500/20">
+                    <p class="text-[10px] font-bold uppercase tracking-widest">
+                        <span class="text-gray-400">Sponsored by</span> 
+                        <span class="sponsor-shimmer font-black italic">HOTDROP - The social media</span>
+                    </p>
+                </div>
+                
+                <p class="text-gray-400 text-sm px-4">Help us choose the movie for the night!</p>
+            </div>
+
+            <div id="movie-grid" class="grid grid-cols-2 gap-3 sm:gap-6"></div>
+            
+            <div class="pt-4">
+                <button onclick="showView('booking-view')" class="w-full group flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-2xl font-black text-sm shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all">
+                    PROCEED TO TICKETS <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </section>
 
         <!-- BOOKING VIEW -->
-        <div id="booking-view" class="glass-view">
-            <h2 style="margin: 0 0 10px 0;">Grab Your Ticket</h2>
-            <p style="font-size: 14px; opacity: 0.7; margin-bottom: 20px;">Movie Winner: <span id="winner-name" style="color: var(--accent-blue); font-weight: bold;">...</span></p>
-
-            <div class="stats-row" style="margin-bottom: 0;">
-                <div class="input-group" style="flex: 2;">
-                    <label>Identify As</label>
-                    <select id="user-role" onchange="updatePrice()">
-                        <option value="student">Student</option>
-                        <option value="teacher">Teacher</option>
-                    </select>
-                </div>
-                <div class="input-group" style="flex: 1;">
-                    <label>Tickets</label>
-                    <select id="ticket-count" onchange="updatePrice()">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
+        <section id="booking-view" class="hidden-view space-y-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl font-black italic">GET TICKETS</h2>
+                <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Film Fest 2026</p>
+                <p class="text-gray-400 text-xs uppercase tracking-widest font-bold">Max 5 tickets per student</p>
             </div>
 
-            <div id="name-inputs-container"></div>
+            <div class="space-y-4">
+                <div class="glass rounded-2xl p-4 space-y-4">
+                    <div class="flex items-center justify-between p-3.5 bg-white/5 rounded-xl border border-white/10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400"><i data-lucide="user" class="w-5 h-5"></i></div>
+                            <div><h4 class="font-bold text-sm">Student</h4><p class="text-[10px] text-blue-400 font-black">₹10</p></div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button onclick="adjustTickets('student', -1)" class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center active:bg-white/20">-</button>
+                            <span id="student-count" class="text-lg font-black w-4 text-center">0</span>
+                            <button onclick="adjustTickets('student', 1)" class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center active:bg-white/20">+</button>
+                        </div>
+                    </div>
 
-            <div class="price-display">
-                <div style="font-size: 12px; opacity: 0.6; margin-bottom: 4px;">TOTAL AMOUNT</div>
-                <div class="price-val" id="price-val">₹15</div>
+                    <div class="flex items-center justify-between p-3.5 bg-white/5 rounded-xl border border-white/10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center text-purple-400"><i data-lucide="users" class="w-5 h-5"></i></div>
+                            <div><h4 class="font-bold text-sm">Teacher</h4><p class="text-[10px] text-purple-400 font-black">₹20</p></div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button onclick="adjustTickets('teacher', -1)" class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center active:bg-white/20">-</button>
+                            <span id="teacher-count" class="text-lg font-black w-4 text-center">0</span>
+                            <button onclick="adjustTickets('teacher', 1)" class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center active:bg-white/20">+</button>
+                        </div>
+                    </div>
+                    <p id="limit-msg" class="text-amber-400 text-[9px] font-bold text-center hidden">MAXIMUM 5 TICKETS REACHED</p>
+                </div>
+
+                <div class="glass rounded-2xl p-4 space-y-4">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-400">Your Information</h3>
+                    <div class="space-y-3">
+                        <input id="guest-name" type="text" placeholder="Full Name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all text-sm font-medium">
+                    </div>
+                </div>
+
+                <div class="glass rounded-2xl p-5 space-y-4">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-black uppercase tracking-tighter">Total Payable</p>
+                            <p class="text-2xl font-black text-blue-400 leading-none">₹<span id="summary-total">0</span></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-gray-500 font-black uppercase tracking-tighter">Tickets</p>
+                            <p id="summary-qty" class="text-xl font-bold leading-none">0</p>
+                        </div>
+                    </div>
+                    <button onclick="goToPayment()" id="btn-continue" disabled class="w-full py-4 rounded-xl font-black text-sm bg-white/5 text-gray-500 cursor-not-allowed transition-all">
+                        SELECT PAYMENT METHOD
+                    </button>
+                </div>
             </div>
-
-            <button class="primary-btn" onclick="goToPayment()">PROCEED TO PAYMENT</button>
-        </div>
+        </section>
 
         <!-- PAYMENT VIEW -->
-        <div id="payment-view" class="glass-view">
-            <h2 style="margin: 0 0 10px 0;">Payment Details</h2>
-            <p style="font-size: 14px; opacity: 0.7; margin-bottom: 20px;">Total: <b id="pay-amount-label" style="color: var(--accent-blue);">₹15</b></p>
-
-            <div class="payment-toggle">
-                <button class="toggle-btn active" id="tab-upi" onclick="togglePayMethod('upi')">UPI</button>
-                <button class="toggle-btn" id="tab-cash" onclick="togglePayMethod('cash')">Cash</button>
+        <section id="payment-view" class="hidden-view space-y-6">
+            <div class="flex items-center gap-2" onclick="showView('booking-view')">
+                <i data-lucide="arrow-left" class="w-4 h-4 text-gray-500"></i>
+                <span class="text-xs font-bold text-gray-500">Back</span>
             </div>
-
-            <div id="method-upi">
-                <a id="upi-deep-link" href="#" class="primary-btn" style="background: #fff; color: #000; margin-bottom: 15px;">Open UPI App</a>
-                <p style="font-size: 11px; text-align: center; opacity: 0.6; margin-bottom: 15px;">UPI ID: <b>6302427339@slc</b></p>
-                <div class="input-group"><label>Transaction ID</label><input type="text" id="txn-id" placeholder="Enter Ref Number"></div>
-            </div>
-
-            <div id="method-cash" style="display: none;">
-                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; font-size: 13px; text-align: center; margin-bottom: 20px; border: 1px solid var(--glass-border);">
-                    Pay cash to coordinator for the <b>Confirmation Code</b>.
-                </div>
-                <div class="input-group"><label>Enter Code</label><input type="password" id="cash-code" placeholder="6-digit code"></div>
-            </div>
-
-            <button class="primary-btn" style="background: var(--success-green);" onclick="validatePayment()">VERIFY & GET TICKET</button>
-        </div>
-
-        <!-- PROCESSING VIEW -->
-        <div id="verifying-screen" class="glass-view"><div class="spinner"></div><h3>Verifying Transaction...</h3></div>
-
-        <!-- TICKET RESULT VIEW -->
-        <div id="ticket-result">
-            <h2 style="margin:0">Ticket Secured!</h2>
-            <p style="opacity: 0.7; font-size: 12px; margin-bottom: 15px;">Sponsored by <u>HOTDROP</u> - The private social media</p>
             
-            <div id="ticket-capture-area">
-                <div class="ticket-outer-border">
-                    <div class="ticket-box" id="ticket-capture">
-                        <div class="college-name">Gowthami Degree College</div>
-                        <div style="font-size: 10px; letter-spacing: 4px; opacity: 0.5;">FILM FESTIVAL 2026</div>
-                        <div class="id-badge" id="final-ticket-id">FF-0000</div>
-                        <div class="ticket-grid">
-                            <div class="grid-item"><label>Names</label><div class="grid-value" id="final-names">...</div></div>
-                            <div class="grid-item"><label>Status</label><div class="grid-value" style="color: var(--success-green)">VALIDATED</div></div>
-                            <div class="grid-item"><label>Designation</label><div class="grid-value" id="final-designation">Student</div></div>
-                            <div class="grid-item"><label>Quantity</label><div class="grid-value" id="final-qty">1</div></div>
-                        </div>
+            <div class="text-center space-y-1">
+                <h2 class="text-xl font-black uppercase italic">Payment</h2>
+                <p class="text-[10px] font-bold text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full inline-block">Amount: ₹<span id="payment-total-display">0</span></p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="setPaymentMethod('upi')" id="pay-upi" class="p-4 rounded-2xl border border-white/10 bg-white/5 text-left transition-all active:scale-95">
+                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mb-3"><i data-lucide="smartphone" class="w-5 h-5"></i></div>
+                    <h4 class="font-bold text-sm">UPI</h4>
+                    <p class="text-[9px] text-gray-500 font-bold uppercase">GPay/PhonePe</p>
+                </button>
+                <button onclick="setPaymentMethod('cash')" id="pay-cash" class="p-4 rounded-2xl border border-white/10 bg-white/5 text-left transition-all active:scale-95">
+                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mb-3"><i data-lucide="banknote" class="w-5 h-5"></i></div>
+                    <h4 class="font-bold text-sm">CASH</h4>
+                    <p class="text-[9px] text-gray-500 font-bold uppercase">Desk Code</p>
+                </button>
+            </div>
+
+            <div id="upi-details" class="hidden glass rounded-2xl p-5 space-y-5">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center">
+                        <i data-lucide="credit-card" class="text-blue-400 w-8 h-8"></i>
+                    </div>
+                    <div class="text-center space-y-1">
+                        <p class="font-black text-sm uppercase tracking-widest text-gray-300">UPI Payment</p>
+                        <p class="font-black text-base text-blue-400">6302427339@slc</p>
+                    </div>
+                    
+                    <button onclick="redirectToUPI()" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-black text-xs shadow-lg flex items-center justify-center gap-2 active:scale-95">
+                        <i data-lucide="external-link" class="w-4 h-4"></i> OPEN PAYMENT APP
+                    </button>
+                </div>
+                
+                <div class="pt-4 border-t border-white/10 space-y-3 text-center">
+                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wider">After payment, upload the screenshot</p>
+                    <div onclick="simulateUpload()" id="upload-box" class="border-2 border-dashed border-white/10 rounded-xl p-6 flex flex-col items-center gap-2 cursor-pointer transition-all active:bg-white/5">
+                        <i data-lucide="camera" id="upload-icon" class="text-gray-500 w-6 h-6"></i>
+                        <span id="upload-text" class="text-gray-400 font-bold text-[10px] text-center uppercase tracking-tighter">Tap to upload payment screenshot</span>
                     </div>
                 </div>
             </div>
 
-            <button class="primary-btn" style="margin-top: 20px; background: var(--accent-purple);" onclick="downloadPass()">DOWNLOAD TICKET</button>
-            <button class="primary-btn" style="background: transparent; border: 1px solid var(--glass-border); color: white; margin-top: 10px;" onclick="location.reload()">HOME</button>
-        </div>
-    </div>
+            <div id="cash-details" class="hidden glass rounded-2xl p-5 space-y-4 text-center">
+                <h3 class="text-sm font-bold">Verification Code</h3>
+                <input id="cash-code" type="text" pattern="[0-9]*" inputmode="numeric" maxlength="6" placeholder="••••••" class="w-full bg-white/5 border border-white/10 rounded-xl py-4 text-center text-3xl font-mono tracking-widest focus:outline-none focus:border-blue-500 transition-colors">
+                <p id="cash-error" class="text-red-500 text-[9px] font-black hidden uppercase">INVALID CODE - TRY AGAIN</p>
+            </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+            <button onclick="finishBooking()" id="btn-finish" disabled class="w-full py-4.5 rounded-xl font-black text-sm bg-white/5 text-gray-500 cursor-not-allowed active:scale-[0.98] transition-all">
+                CONFIRM BOOKING
+            </button>
+        </section>
 
+        <!-- SUCCESS VIEW -->
+        <section id="success-view" class="hidden-view space-y-8 animate-in zoom-in-95 duration-500">
+            <div class="text-center space-y-2 pt-4">
+                <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto shadow-xl shadow-green-500/40">
+                    <i data-lucide="check" class="text-white w-8 h-8"></i>
+                </div>
+                <h2 class="text-3xl font-black italic">BOOKED!</h2>
+                <p id="success-msg" class="text-gray-400 text-[10px] px-8 leading-relaxed font-bold uppercase tracking-tighter"></p>
+            </div>
+            
+            <div id="final-ticket" class="glass rounded-3xl overflow-hidden p-0 border-none shadow-2xl mx-2">
+                <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-5 flex justify-between items-center ticket-cutout">
+                    <div>
+                        <h4 class="text-[8px] font-black opacity-60 uppercase tracking-widest">Digital Entry Pass</h4>
+                        <p class="text-xs font-bold text-blue-200">Gowthami Degree College</p>
+                        <p class="text-lg font-black italic">FILM FEST 2026</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[7px] font-bold opacity-60">ID</p>
+                        <p class="font-mono font-bold text-sm" id="ticket-id">#FF-0000</p>
+                    </div>
+                </div>
+                <div class="p-6 space-y-6 bg-white/5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-0.5">
+                            <h4 class="text-[8px] text-gray-500 font-black uppercase tracking-widest">Name</h4>
+                            <p id="ticket-name" class="font-black text-sm truncate uppercase tracking-tighter">NAME</p>
+                        </div>
+                        <div class="text-right space-y-0.5">
+                            <h4 class="text-[8px] text-gray-500 font-black uppercase tracking-widest">Count</h4>
+                            <p id="ticket-qty" class="font-black text-sm">0 PASSES</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Barcode Section -->
+                    <div class="bg-white p-4 rounded-xl flex flex-col items-center justify-center gap-2">
+                        <div class="h-12 w-full flex gap-[1px] items-end justify-center overflow-hidden" id="barcode-container">
+                            <!-- Barcode bars will be generated here -->
+                        </div>
+                        <p class="text-[8px] text-black font-mono font-bold" id="barcode-text"></p>
+                    </div>
 
+                    <div id="info-box" class="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl space-y-2 text-center">
+                        <i data-lucide="award" class="w-6 h-6 text-blue-400 mx-auto"></i>
+                        <p id="info-text" class="text-[10px] font-black text-blue-300 leading-tight uppercase tracking-widest"></p>
+                    </div>
 
-        // Firebase Config
-        // REPLACE THE OLD CONFIG WITH THIS ONE FROM YOUR SCREENSHOT
-const firebaseConfig = {
-  apiKey: "AIzaSyATcIHFWho0f9_hE5PnuaeJE8U3rPH0M78",
-  authDomain: "gdc-film-fest.firebaseapp.com",
-  projectId: "gdc-film-fest",
-  storageBucket: "gdc-film-fest.firebasestorage.app",
-  messagingSenderId: "145923761775",
-  appId: "1:145923761775:web:6ad25817862b739b2b0f9a"
-};
+                    <div class="text-center space-y-1">
+                        <p class="text-[7px] text-gray-500 font-bold uppercase tracking-tighter">Generated at <span id="time-stamp"></span></p>
+                        <p class="text-[9px] text-blue-400 font-black uppercase tracking-tighter italic">Helpdesk: 7674890021</p>
+                        <p class="text-[8px] font-bold text-gray-600 mt-2 italic uppercase">Sponsored by HOTDROP - The Private Social Media</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col items-center gap-6 pt-4">
+                <button onclick="window.print()" class="text-[10px] font-black bg-white/10 border border-white/20 px-8 py-3 rounded-full hover:bg-white/20 active:scale-95 transition-all flex items-center gap-2">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i> SAVE TICKET
+                </button>
+                <button onclick="location.reload()" class="text-blue-500 font-black uppercase tracking-widest text-[9px]">Restart New Booking</button>
+            </div>
+        </section>
+    </main>
 
-        let user = null;
-        let eventState = { phase: 0, startTime: null };
-        let movies = [
-            { id: 'knight', title: 'The Dark Knight', genre: 'Action, Crime, Drama', votes: 0 },
-            { id: 'inception', title: 'Inception', genre: 'Sci-Fi, Thriller', votes: 0 },
-            { id: 'inter', title: 'Interstellar', genre: 'Sci-Fi, Adventure', votes: 0 }
-        ];
+    <!-- Footer -->
+    <footer class="relative z-10 py-10 text-center border-t border-white/5 opacity-50 space-y-2">
+        <p class="text-[9px] font-black uppercase tracking-[0.2em] text-blue-400">Gowthami Degree College</p>
+        <p class="text-[8px] font-bold uppercase tracking-widest">Sponsored by <span class="text-white italic">HOTDROP - The Private Social Media</span></p>
+    </footer>
 
-        // --- AUTH ---
-        signInAnonymously(auth).then(() => {
-            onAuthStateChanged(auth, (u) => {
-                user = u;
-                if(u) initApp();
-            });
-        });
+    <div class="fixed bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-pink-500 z-50"></div>
 
-        function initApp() {
-            // Check if admin is logged in (Simple query param for this demo: ?admin=true)
-            if (new URLSearchParams(window.location.search).get('admin') === 'true') {
-                document.getElementById('admin-panel').style.display = 'block';
-            }
-
-            // Sync Event State
-            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'eventState'), (docSnap) => {
-                if (docSnap.exists()) {
-                    eventState = docSnap.data();
-                    renderPhase();
-                } else {
-                    // Create default state
-                    setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'eventState'), { phase: 0, startTime: null });
-                }
-            });
-
-            // Sync Movie Votes
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'movies'), (snapshot) => {
-                const updatedMovies = [];
-                let total = 0;
-                snapshot.forEach(d => {
-                    const data = d.data();
-                    updatedMovies.push({ id: d.id, ...data });
-                    total += (data.votes || 0);
-                });
-                if(updatedMovies.length > 0) {
-                    movies = updatedMovies;
-                    document.getElementById('total-votes').innerText = total;
-                    renderMovies(total);
-                } else {
-                    // Seed movies
-                    movies.forEach(m => setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'movies', m.id), m));
-                }
-            });
-        }
-
-        // --- PHASE LOGIC ---
-        function renderPhase() {
-            const views = ['waiting-view', 'voting-view', 'booking-view', 'payment-view', 'ticket-result'];
-            views.forEach(v => document.getElementById(v).classList.add('hidden'));
-
-            if (eventState.phase === 0) {
-                document.getElementById('waiting-view').classList.remove('hidden');
-            } else if (eventState.phase === 1) {
-                document.getElementById('voting-view').classList.remove('hidden');
-                startCountdown();
-            } else if (eventState.phase === 2) {
-                document.getElementById('booking-view').style.display = 'block';
-                const winner = [...movies].sort((a,b) => b.votes - a.votes)[0];
-                document.getElementById('winner-name').innerText = winner ? winner.title : "TBA";
-                updatePrice();
-            }
-        }
-
-        window.triggerStart = async () => {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'eventState'), {
-                phase: 1,
-                startTime: Date.now()
-            });
+    <script>
+        let state = {
+            view: 'voting',
+            movies: [
+                { id: 1, title: "Interstellar", votes: 45, img: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400&q=80" },
+                { id: 2, title: "Inception", votes: 38, img: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&q=80" },
+                { id: 3, title: "The Dark Knight", votes: 52, img: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=400&q=80" },
+                { id: 4, title: "Parasite", votes: 31, img: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=400&q=80" }
+            ],
+            studentTickets: 0,
+            teacherTickets: 0,
+            name: '',
+            paymentMethod: null,
+            uploaded: false,
+            voted: false
         };
 
-        function startCountdown() {
-            if (!eventState.startTime) return;
-            const timerEl = document.getElementById('vote-timer');
-            const interval = setInterval(() => {
-                const now = Date.now();
-                const diff = (24 * 60 * 60 * 1000) - (now - eventState.startTime);
-                
-                if (diff <= 0) {
-                    clearInterval(interval);
-                    timerEl.innerText = "00:00:00";
-                    if (eventState.phase === 1) updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'eventState'), { phase: 2 });
-                } else {
-                    const h = Math.floor(diff / 3600000);
-                    const m = Math.floor((diff % 3600000) / 60000);
-                    const s = Math.floor((diff % 60000) / 1000);
-                    timerEl.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-                }
-            }, 1000);
-        }
+        const PRICES = { student: 10, teacher: 20 };
+        const CASH_CODE = "944016";
+        const WHATSAPP_NUM = "917674890021";
+        const UPI_ID = "6302427339@slc";
 
-        // --- VOTING ---
-        function renderMovies(total) {
-            const list = document.getElementById('movies-list');
-            list.innerHTML = '';
-            movies.forEach(m => {
-                const perc = total === 0 ? 0 : (m.votes / total) * 100;
-                const card = document.createElement('div');
-                card.className = 'movie-card';
-                if(localStorage.getItem('voted')) card.classList.add('voted');
-                card.onclick = () => castVote(m.id);
-                card.innerHTML = `
-                    <p class="movie-title">${m.title}</p>
-                    <p class="movie-info">${m.genre}</p>
-                    <div class="vote-row"><span>👥 ${m.votes || 0} votes</span></div>
-                    <div class="progress-container"><div class="progress-bar" style="width: ${perc}%"></div></div>
+        window.onload = () => {
+            renderMovies();
+            lucide.createIcons();
+            attachInputListeners();
+        };
+
+        function renderMovies() {
+            const grid = document.getElementById('movie-grid');
+            grid.innerHTML = '';
+            state.movies.sort((a,b) => b.votes - a.votes).forEach((m, idx) => {
+                grid.innerHTML += `
+                    <div class="glass rounded-2xl overflow-hidden flex flex-col border-white/5 shadow-lg active:scale-95 transition-transform">
+                        <div class="relative aspect-[3/4] overflow-hidden">
+                            <img src="${m.img}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                            ${idx === 0 ? '<div class="absolute top-1.5 left-1.5 bg-blue-600 text-white text-[7px] px-2 py-0.5 rounded-full font-black shadow-lg">LEADING</div>' : ''}
+                        </div>
+                        <div class="p-2.5 space-y-1.5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-bold text-[10px] leading-tight line-clamp-1">${m.title}</h3>
+                                <p class="text-blue-400 font-mono text-[9px] font-black">${m.votes} Votes</p>
+                            </div>
+                            <button onclick="vote(${m.id})" ${state.voted ? 'disabled' : ''} class="w-full py-1.5 bg-white text-black rounded-lg font-black text-[9px] transition-all ${state.voted ? 'opacity-20' : 'active:bg-gray-200'}">
+                                ${state.voted ? 'Voted' : 'VOTE'}
+                            </button>
+                        </div>
+                    </div>
                 `;
-                list.appendChild(card);
             });
         }
 
-        async function castVote(id) {
-            if(localStorage.getItem('voted')) return;
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'movies', id), { votes: increment(1) });
-            localStorage.setItem('voted', 'true');
+        function vote(id) {
+            if (state.voted) return;
+            state.movies = state.movies.map(m => m.id === id ? {...m, votes: m.votes + 1} : m);
+            state.voted = true;
+            renderMovies();
         }
 
-        // --- BOOKING ---
-        let currentMethod = 'upi';
-        window.updatePrice = () => {
-            const role = document.getElementById('user-role').value;
-            const count = parseInt(document.getElementById('ticket-count').value);
-            const total = count * (role === 'student' ? 15 : 25);
-            
-            document.getElementById('price-val').innerText = `₹${total}`;
-            document.getElementById('pay-amount-label').innerText = `₹${total}`;
-            document.getElementById('cash-amt').innerText = total;
+        function showView(viewId) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden-view'));
+            document.getElementById(viewId).classList.remove('hidden-view');
+            document.getElementById('nav-vote').className = `px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewId === 'voting-view' ? 'bg-blue-600 shadow-lg' : 'hover:bg-white/5'}`;
+            document.getElementById('nav-tickets').className = `px-4 py-1.5 rounded-full text-xs font-bold transition-all ${viewId === 'booking-view' || viewId === 'payment-view' ? 'bg-blue-600 shadow-lg' : 'hover:bg-white/5'}`;
+        }
 
-            const nameContainer = document.getElementById('name-inputs-container');
-            nameContainer.innerHTML = '<label>Ticket Names</label>';
-            for(let i=1; i<=count; i++) {
-                nameContainer.innerHTML += `<input type="text" class="g-name" placeholder="Name for ticket ${i}" style="margin-bottom:10px">`;
+        function adjustTickets(type, delta) {
+            const total = state.studentTickets + state.teacherTickets;
+            if (delta > 0 && total >= 5) {
+                document.getElementById('limit-msg').classList.remove('hidden');
+                return;
             }
+            document.getElementById('limit-msg').classList.add('hidden');
+            if (type === 'student') state.studentTickets = Math.max(0, state.studentTickets + delta);
+            else state.teacherTickets = Math.max(0, state.teacherTickets + delta);
+            updateBookingUI();
+        }
 
-            const upiUrl = `upi://pay?pa=6302427339@slc&pn=SAIRAJ&am=${total}&cu=INR`;
-            document.getElementById('upi-deep-link').href = upiUrl;
-        };
+        function updateBookingUI() {
+            document.getElementById('student-count').innerText = state.studentTickets;
+            document.getElementById('teacher-count').innerText = state.teacherTickets;
+            const totalQty = state.studentTickets + state.teacherTickets;
+            const totalVal = (state.studentTickets * PRICES.student) + (state.teacherTickets * PRICES.teacher);
+            document.getElementById('summary-qty').innerText = totalQty;
+            document.getElementById('summary-total').innerText = totalVal;
+            validateBooking();
+        }
 
-        window.togglePayMethod = (m) => {
-            currentMethod = m;
-            document.getElementById('tab-upi').classList.toggle('active', m === 'upi');
-            document.getElementById('tab-cash').classList.toggle('active', m === 'cash');
-            document.getElementById('method-upi').style.display = m === 'upi' ? 'block' : 'none';
-            document.getElementById('method-cash').style.display = m === 'cash' ? 'block' : 'none';
-        };
+        function attachInputListeners() {
+            document.getElementById('guest-name').addEventListener('input', (e) => { state.name = e.target.value; validateBooking(); });
+            document.getElementById('cash-code').addEventListener('input', (e) => { validatePayment(); });
+        }
 
-        window.goToPayment = () => {
-            const names = Array.from(document.querySelectorAll('.g-name')).map(i => i.value.trim());
-            if(names.some(n => !n)) return alert("Enter names for all tickets.");
-            document.getElementById('booking-view').style.display = 'none';
-            document.getElementById('payment-view').style.display = 'block';
-        };
+        function validateBooking() {
+            const btn = document.getElementById('btn-continue');
+            const totalQty = state.studentTickets + state.teacherTickets;
+            if (totalQty > 0 && totalQty <= 5 && state.name.trim()) {
+                btn.disabled = false;
+                btn.className = "w-full py-4 rounded-xl font-black text-sm bg-blue-600 text-white shadow-xl shadow-blue-500/20 active:scale-[0.98]";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full py-4 rounded-xl font-black text-sm bg-white/5 text-gray-500 cursor-not-allowed";
+            }
+        }
 
-        window.validatePayment = async () => {
-            if(currentMethod === 'upi' && !document.getElementById('txn-id').value) return alert("Enter Ref ID.");
-            if(currentMethod === 'cash' && document.getElementById('cash-code').value !== "944016") return alert("Wrong code.");
+        function goToPayment() {
+            const totalVal = (state.studentTickets * PRICES.student) + (state.teacherTickets * PRICES.teacher);
+            document.getElementById('payment-total-display').innerText = totalVal;
+            document.querySelectorAll('.price-val').forEach(el => el.innerText = totalVal);
+            showView('payment-view');
+        }
 
-            document.getElementById('payment-view').style.display = 'none';
-            document.getElementById('verifying-screen').style.display = 'block';
-
-            const names = Array.from(document.querySelectorAll('.g-name')).map(i => i.value.trim());
-            const ticketID = "FF-" + Math.floor(1000 + Math.random() * 9000);
+        function setPaymentMethod(method) {
+            state.paymentMethod = method;
+            document.getElementById('upi-details').classList.toggle('hidden', method !== 'upi');
+            document.getElementById('cash-details').classList.toggle('hidden', method !== 'cash');
+            document.getElementById('pay-upi').className = `p-4 rounded-2xl border transition-all text-left ${method === 'upi' ? 'border-blue-500 bg-blue-600/10' : 'border-white/10 bg-white/5'}`;
+            document.getElementById('pay-cash').className = `p-4 rounded-2xl border transition-all text-left ${method === 'cash' ? 'border-blue-500 bg-blue-600/10' : 'border-white/10 bg-white/5'}`;
             
-            // Save Booking
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'bookings'), {
-                names,
-                ticketID,
-                role: document.getElementById('user-role').value,
-                timestamp: serverTimestamp()
-            });
+            const btnFinish = document.getElementById('btn-finish');
+            if (method === 'upi') {
+                btnFinish.innerText = "CONFIRM & SEND TO WHATSAPP";
+            } else {
+                btnFinish.innerText = "CONFIRM BOOKING";
+            }
+            
+            validatePayment();
+        }
 
-            setTimeout(() => {
-                document.getElementById('verifying-screen').style.display = 'none';
-                document.getElementById('ticket-result').style.display = 'block';
-                document.getElementById('final-ticket-id').innerText = ticketID;
-                document.getElementById('final-names').innerText = names.join(', ');
-                document.getElementById('final-designation').innerText = document.getElementById('user-role').value;
-                document.getElementById('final-qty').innerText = names.length;
-            }, 2000);
-        };
+        function redirectToUPI() {
+            const totalVal = (state.studentTickets * PRICES.student) + (state.teacherTickets * PRICES.teacher);
+            const upiUrl = `upi://pay?pa=${UPI_ID}&pn=GowthamiFilmFest&am=${totalVal}&cu=INR&tn=GowthamiTicketBooking`;
+            window.location.href = upiUrl;
+        }
 
-        window.downloadPass = () => {
-            html2canvas(document.getElementById('ticket-capture-area'), { backgroundColor: "#0f172a", scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'GDC-FilmFest-Ticket.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            });
-        };
+        function simulateUpload() {
+            state.uploaded = true;
+            document.getElementById('upload-box').className = "border-2 border-dashed border-green-500 bg-green-500/10 rounded-xl p-6 flex flex-col items-center gap-2 animate-pulse";
+            document.getElementById('upload-text').innerText = "Proof Uploaded!";
+            document.getElementById('upload-text').className = "text-green-500 font-black text-[10px]";
+            document.getElementById('upload-icon').className = "text-green-500 w-6 h-6";
+            validatePayment();
+        }
+
+        function validatePayment() {
+            const btn = document.getElementById('btn-finish');
+            const cashVal = document.getElementById('cash-code').value;
+            let isValid = false;
+            if (state.paymentMethod === 'upi' && state.uploaded) isValid = true;
+            if (state.paymentMethod === 'cash' && cashVal === CASH_CODE) isValid = true;
+            if (state.paymentMethod === 'cash' && cashVal.length === 6 && cashVal !== CASH_CODE) {
+                document.getElementById('cash-error').classList.remove('hidden');
+            } else {
+                document.getElementById('cash-error').classList.add('hidden');
+            }
+            if (isValid) {
+                btn.disabled = false;
+                btn.className = "w-full py-4.5 rounded-xl font-black text-sm bg-white text-black shadow-2xl active:scale-[0.98]";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full py-4.5 rounded-xl font-black text-sm bg-white/5 text-gray-500 cursor-not-allowed";
+            }
+        }
+
+        function generateBarcode(id) {
+            const container = document.getElementById('barcode-container');
+            const textEl = document.getElementById('barcode-text');
+            container.innerHTML = '';
+            
+            // Randomly sized bars for aesthetic
+            for (let i = 0; i < 40; i++) {
+                const bar = document.createElement('div');
+                const height = 40 + Math.random() * 60;
+                const width = Math.random() > 0.8 ? 3 : 1.5;
+                bar.style.height = `${height}%`;
+                bar.style.width = `${width}px`;
+                bar.className = 'bg-black flex-shrink-0';
+                container.appendChild(bar);
+            }
+            textEl.innerText = id;
+        }
+
+        function finishBooking() {
+            const totalVal = (state.studentTickets * PRICES.student) + (state.teacherTickets * PRICES.teacher);
+            const totalQty = state.studentTickets + state.teacherTickets;
+            
+            document.getElementById('ticket-name').innerText = state.name.toUpperCase();
+            document.getElementById('ticket-qty').innerText = `${totalQty} PASSES`;
+            const tid = `FF-${Math.floor(1000 + Math.random() * 9000)}`;
+            document.getElementById('ticket-id').innerText = `#${tid}`;
+            document.getElementById('time-stamp').innerText = new Date().toLocaleString();
+
+            const successMsg = document.getElementById('success-msg');
+            const infoText = document.getElementById('info-text');
+            const sponsorText = "Sponsored by HOTDROP - The Private Social Media";
+
+            generateBarcode(tid);
+
+            if (state.paymentMethod === 'upi') {
+                successMsg.innerText = "Your payment proof has been submitted. Redirecting to WhatsApp for verification...";
+                infoText.innerText = sponsorText;
+                
+                const message = encodeURIComponent(`Gowthami Degree College Film Fest Payment:\nAmount: ₹${totalVal}\nTickets: ${totalQty}\nName: ${state.name}\nTicket ID: ${tid}\nI have uploaded my payment proof. Please verify.`);
+                const waUrl = `https://wa.me/${WHATSAPP_NUM}?text=${message}`;
+                
+                showView('success-view');
+                lucide.createIcons();
+                
+                setTimeout(() => {
+                    window.open(waUrl, '_blank');
+                }, 2500);
+            } else {
+                successMsg.innerText = "Booking Confirmed! Your digital entry ticket is ready.";
+                infoText.innerText = sponsorText;
+                showView('success-view');
+                lucide.createIcons();
+            }
+        }
     </script>
 </body>
 </html>

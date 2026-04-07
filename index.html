@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signature Day 2026 | Film Fest</title>
+    <title>Gowthami Degree College | Film Fest</title>
     <!-- Inter Font for that premium look -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -251,34 +251,17 @@
             border-color: var(--accent-purple);
         }
 
-        .bank-details {
+        .cash-instruction {
             background: rgba(0,0,0,0.2);
             padding: 15px;
             border-radius: 12px;
             font-size: 13px;
-            line-height: 1.8;
+            line-height: 1.6;
             margin-bottom: 20px;
             border: 1px solid var(--glass-border);
+            text-align: center;
         }
-        .bank-details b { color: var(--accent-blue); }
-
-        .qr-container {
-            width: 180px;
-            height: 180px;
-            background: white;
-            margin: 0 auto 20px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            box-shadow: 0 0 25px rgba(168, 85, 247, 0.3);
-        }
-        .qr-image {
-            width: 90%;
-            height: 90%;
-            object-fit: contain;
-        }
+        .cash-instruction b { color: var(--accent-blue); }
 
         .payment-timer {
             font-size: 14px;
@@ -406,7 +389,11 @@
     </div>
 
     <div class="main-container">
-        <div class="header-label">SIGNATURE DAY 2026</div>
+        <!-- Top College Name Display -->
+        <div style="text-align: center; margin-bottom: 25px;">
+            <div style="color: var(--college-red); font-weight: 900; letter-spacing: 2px; font-size: 18px; text-transform: uppercase;">Gowthami Degree College</div>
+            <div class="header-label" style="margin-bottom: 0; margin-top: 5px;">SIGNATURE DAY 2026</div>
+        </div>
         
         <!-- VOTING VIEW -->
         <div id="voting-view">
@@ -472,64 +459,57 @@
         <div id="payment-view" class="glass-view payment-card">
             <h2 style="margin: 0 0 10px 0;">Payment Details</h2>
             <p style="font-size: 14px; opacity: 0.7; margin-bottom: 20px;">
-                Pay <b id="pay-amount-label" style="color: var(--accent-blue);">₹15</b> via your preferred method
+                Pay <b id="pay-amount-label" style="color: var(--accent-blue);">₹10</b> to secure your seat
             </p>
 
             <div class="payment-toggle">
-                <button class="toggle-btn active" id="tab-upi" onclick="togglePayMethod('upi')">UPI Apps</button>
-                <button class="toggle-btn" id="tab-bank" onclick="togglePayMethod('bank')">Bank Account</button>
+                <button class="toggle-btn active" id="tab-upi" onclick="togglePayMethod('upi')">UPI Payment</button>
+                <button class="toggle-btn" id="tab-cash" onclick="togglePayMethod('cash')">Cash Payment</button>
             </div>
 
             <!-- UPI Method -->
             <div id="method-upi">
-                <!-- REDIRECT BUTTON -->
                 <a id="upi-deep-link" href="#" class="primary-btn upi-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                     Pay via PhonePe / GPay
                 </a>
-
-                <div class="qr-container">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=filmfest@upi&am=10" alt="Scan to Pay" class="qr-image" id="qr-display">
-                </div>
                 <p style="font-size: 12px; text-align: center; opacity: 0.8; margin-bottom: 20px;">
-                    UPI ID: <b id="upi-label">filmfest@upi</b><br>
-                    <small>(Scan QR if button doesn't open app)</small>
+                    UPI ID: <b id="upi-label">yourname@upi</b>
                 </p>
-            </div>
-
-            <!-- Bank Method -->
-            <div id="method-bank" style="display: none;">
-                <div class="bank-details">
-                    Account Holder: <b>SAIRAJ - FILM FEST</b><br>
-                    Bank Name: <b>State Bank of India</b><br>
-                    Account No: <b>3829XXXXXX12</b><br>
-                    IFSC Code: <b>SBIN00XXXXX</b><br>
-                    Branch: <b>Hyderabad Main</b>
+                <div class="input-group">
+                    <label>Transaction Ref No.</label>
+                    <input type="text" id="txn-id" placeholder="Enter last 6 digits of Ref ID">
                 </div>
             </div>
 
-            <div class="input-group">
-                <label>Transaction Ref No.</label>
-                <input type="text" id="txn-id" placeholder="Enter last 4-6 digits of Ref ID">
+            <!-- Cash Method -->
+            <div id="method-cash" style="display: none;">
+                <div class="cash-instruction">
+                    Please pay <b>₹<span id="cash-amt">10</span></b> to the event coordinator and ask for the <b>Confirmation Code</b>.
+                </div>
+                <div class="input-group">
+                    <label>Enter Confirmation Code</label>
+                    <input type="password" id="cash-code" placeholder="Enter 6-digit code">
+                </div>
             </div>
 
             <div class="payment-timer" id="timer" style="text-align: center;">05:00</div>
 
-            <button class="primary-btn" style="background: var(--success-green); margin-top: 20px;" onclick="startVerification()">I HAVE PAID - GET TICKET</button>
+            <button class="primary-btn" style="background: var(--success-green); margin-top: 20px;" onclick="startVerification()">CONFIRM & GET TICKET</button>
         </div>
 
-        <!-- VERIFYING VIEW -->
+        <!-- VERIFYING SCREEN -->
         <div id="verifying-screen" class="glass-view" style="display: none; border-color: var(--accent-blue);">
             <div class="spinner"></div>
-            <h3>Verifying Transaction...</h3>
-            <p style="opacity: 0.7; font-size: 14px;">Checking payment with the bank. Please wait.</p>
+            <h3>Verifying Payment...</h3>
+            <p style="opacity: 0.7; font-size: 14px;">Checking with the system. Please wait.</p>
         </div>
 
         <!-- TICKET RESULT VIEW -->
         <div id="ticket-result">
             <div style="font-size: 40px; margin-bottom: 10px;">✨</div>
             <h2 style="margin:0">Ticket Confirmed</h2>
-            <p style="opacity: 0.7; font-size: 14px; color: red;">Powered by HOTDROP - The Private Social Media</p>
+            <p style="opacity: 0.7; font-size: 14px;">Sponsored by<u> HOTDROP</u> - The private social media</p>
             
             <div class="ticket-box">
                 <div class="college-name">Gowthami Degree College</div>
@@ -553,8 +533,8 @@
                         <div class="info-value" id="final-qty">1 Ticket</div>
                     </div>
                     <div>
-                        <div class="info-label">Payment Status</div>
-                        <div class="info-value" style="color: var(--success-green)">COMPLETED</div>
+                        <div class="info-label">Status</div>
+                        <div class="info-value" style="color: var(--success-green)">VALIDATED</div>
                     </div>
                 </div>
 
@@ -570,23 +550,23 @@
     </div>
 
     <script>
-        // --- YOUR DATA ---
+        // --- CONFIGURATION ---
         const myUPI = "6302427339@slc"; 
         const myName = "SAIRAJ"; 
-        const collegeName = "Gowthami Degree College";
         const studentPrice = 15;
         const teacherPrice = 25;
+        const CASH_SECRET_CODE = "944016"; 
 
-        // Trial Data
+        let currentMethod = 'upi';
+        let totalVotesCount = 0;
+        let hasVoted = false;
+        let timerInterval;
+
         const movies = [
             { id: 'knight', title: 'The Dark Knight', genre: 'Action, Crime, Drama', votes: 0 },
             { id: 'inception', title: 'Inception', genre: 'Sci-Fi, Thriller', votes: 0 },
             { id: 'inter', title: 'Interstellar', genre: 'Sci-Fi, Adventure', votes: 0 }
         ];
-
-        let totalVotesCount = 0;
-        let hasVoted = false;
-        let timerInterval;
 
         function renderMovies() {
             const list = document.getElementById('movies-list');
@@ -625,10 +605,11 @@
         }
 
         function togglePayMethod(method) {
+            currentMethod = method;
             document.getElementById('tab-upi').classList.toggle('active', method === 'upi');
-            document.getElementById('tab-bank').classList.toggle('active', method === 'bank');
+            document.getElementById('tab-cash').classList.toggle('active', method === 'cash');
             document.getElementById('method-upi').style.display = method === 'upi' ? 'block' : 'none';
-            document.getElementById('method-bank').style.display = method === 'bank' ? 'block' : 'none';
+            document.getElementById('method-cash').style.display = method === 'cash' ? 'block' : 'none';
         }
 
         function switchPhase(phase) {
@@ -656,11 +637,12 @@
             const count = parseInt(document.getElementById('ticket-count').value);
             const basePrice = role === 'student' ? studentPrice : teacherPrice;
             const totalPrice = basePrice * count;
+            
             document.getElementById('price-val').innerText = '₹' + totalPrice;
             document.getElementById('pay-amount-label').innerText = '₹' + totalPrice;
-            const qrImg = document.getElementById('qr-display');
+            document.getElementById('cash-amt').innerText = totalPrice;
+            
             const upiUrl = `upi://pay?pa=${myUPI}&pn=${encodeURIComponent(myName)}&am=${totalPrice}&cu=INR`;
-            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiUrl)}`;
             document.getElementById('upi-deep-link').href = upiUrl;
             document.getElementById('upi-label').innerText = myUPI;
         }
@@ -691,14 +673,20 @@
         }
 
         function startVerification() {
-            const txn = document.getElementById('txn-id').value;
-            if(!txn) return alert("Enter Transaction Ref No.");
+            if (currentMethod === 'upi') {
+                const txn = document.getElementById('txn-id').value;
+                if(!txn) return alert("Please enter Transaction Ref No.");
+            } else {
+                const code = document.getElementById('cash-code').value;
+                if(code !== CASH_SECRET_CODE) return alert("Invalid Confirmation Code. Please contact coordinator.");
+            }
+
             document.getElementById('payment-view').style.display = 'none';
             document.getElementById('verifying-screen').style.display = 'block';
             clearInterval(timerInterval);
             setTimeout(() => {
                 processBooking();
-            }, 3000);
+            }, 2500);
         }
 
         function processBooking() {
